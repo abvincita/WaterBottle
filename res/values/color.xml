@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+    <color name="FireBrick">#B22222</color>
+    <color name="drawer_background">#f3f3f4</color>
+    <color name="separator_line">#dadadc</color>
+    <color name="selected_blue">#80ceea</color>
+    <color name="bus_green">#80ba42</color>
+    <color name="ferry_blue">#136ab1</color>
+	<color name="train_orange">#f4961f</color>   
+	<color name="dark_grey">#888888</color> 
+	<color name="grey_background">#eeeeee</color>
+    <color name="transparent_black">#88000000</color>
+    <color name="blue_background">#33b6e5</color>
+    <drawable name="transparent_color">#00000000</drawable>    
+	
+</resources>

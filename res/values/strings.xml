@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WaterBottle</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="closest_distance">100m</string>
+    <string name="water_mark">Water Mark</string>
+    <string name="nearest_tap_text">To the nearest public tap</string>
+    <string name="water_bottle">Water Bottle</string>
+    <string name="title_activity_choose_bottle_fragment">ChooseBottleFragment</string>
+    <string name="next_arrow_desc">Next Arrow</string>
+    <string name="prev_arrow_desc">Prev Arrow</string>
+    <string name="choose_bottle">Pick your water bottle!</string>
+
+</resources>
