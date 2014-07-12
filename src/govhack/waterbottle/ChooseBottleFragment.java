@@ -152,14 +152,18 @@ public class ChooseBottleFragment extends Fragment implements OnClickListener {
         	    switch(mPageNumber+1)
                 {
                 	case 1:
+                		editor.putInt(HomeActivity.BOTTLE_CHOICE, 1);
                 		break;
                 	case 2:
+                		editor.putInt(HomeActivity.BOTTLE_CHOICE, 2);
                 		HomeActivity.waterBottle.setImageResource(R.drawable.holo2);
                 		break;
                 	case 3:
+                		editor.putInt(HomeActivity.BOTTLE_CHOICE, 3);
                 		HomeActivity.waterBottle.setImageResource(R.drawable.holo3);
                 		break;
                 	case 4:
+                		editor.putInt(HomeActivity.BOTTLE_CHOICE, 4);
                 		HomeActivity.waterBottle.setImageResource(R.drawable.holo4);
                 		break;
                 	default:

@@ -54,6 +54,8 @@ GooglePlayServicesClient.OnConnectionFailedListener
 {
 	private static final LatLng DEFAULT_LOCATION = new LatLng(-27.498037,153.017823);
 	public static final String CHOOSE_BOTTLE_SETTING = "CHOOSE_BOTTLE";
+	public static final String LAST_OPEN_TIME = "LAST_OPEN_TIME";
+	public static final String BOTTLE_CHOICE = "BOTTLE_CHOICE";
 	public static final int NUM_PAGES = 4;
 	public static TextView chooseBottleTitle;
 	public static ImageView waterBottle;
@@ -116,15 +118,132 @@ GooglePlayServicesClient.OnConnectionFailedListener
 		
 		settings = PreferenceManager.getDefaultSharedPreferences(this);
 		boolean chooseBottle = settings.getBoolean(CHOOSE_BOTTLE_SETTING, true);
+		int bottleChoice = settings.getInt(BOTTLE_CHOICE, 0);
 		
 		chooseBottleTitle = (TextView) findViewById(R.id.tutorial_title);
 		waterBottle = (ImageView) findViewById(R.id.water_bottle);
 		blueBG = (ImageView)findViewById(R.id.blue_bg);
 		
 		if (chooseBottle)
+		{
 			showChooseBottleDialog();
+			increaseWater(4000);
+		}
 		else
+		{
 			chooseBottleTitle.setVisibility(View.GONE);
+
+			long lastOpenTime = settings.getLong(LAST_OPEN_TIME, (long) 0.0);
+			long currentTime = System.currentTimeMillis();
+			long diff = currentTime - lastOpenTime;
+			
+			if(diff < (7.5 * 60 * 1000))
+			{
+				bottleFull = true;
+				switch(bottleChoice)
+				{
+					case 1:
+						waterBottle.setImageResource(R.drawable.circle1);
+	            		break;
+	            	case 2:
+	            		waterBottle.setImageResource(R.drawable.circle2);
+	            		break;
+	            	case 3:
+	            		waterBottle.setImageResource(R.drawable.circle3);
+	            		break;
+	            	case 4:
+	            		waterBottle.setImageResource(R.drawable.circle4);
+	            		break;
+	            	default:
+	            		break;
+				}
+			}
+			else if(diff >= (7.5 * 60 * 1000) && diff < (15 * 60 * 1000))
+			{
+				bottleFull = false;
+				switch(bottleChoice)
+				{
+					case 1:
+						waterBottle.setImageResource(R.drawable.waterbottle_31);
+	            		break;
+	            	case 2:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_32);
+	            		break;
+	            	case 3:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_33);
+	            		break;
+	            	case 4:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_34);
+	            		break;
+	            	default:
+	            		break;
+				}
+			}
+			else if(diff >= (15 * 60 * 1000) && diff < (22.5 * 60 * 1000))
+			{
+				bottleFull = false;
+				switch(bottleChoice)
+				{
+					case 1:
+						waterBottle.setImageResource(R.drawable.waterbottle_27);
+	            		break;
+	            	case 2:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_28);
+	            		break;
+	            	case 3:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_29);
+	            		break;
+	            	case 4:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_30);
+	            		break;
+	            	default:
+	            		break;
+				}
+			}
+			else if(diff >= (22.5 * 60 * 1000) && diff < (30 * 60 * 1000))
+			{
+				bottleFull = false;
+				switch(bottleChoice)
+				{
+					case 1:
+						waterBottle.setImageResource(R.drawable.waterbottle_23);
+	            		break;
+	            	case 2:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_24);
+	            		break;
+	            	case 3:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_25);
+	            		break;
+	            	case 4:
+	            		waterBottle.setImageResource(R.drawable.waterbottle_26);
+	            		break;
+	            	default:
+	            		break;
+				}
+			}
+			else
+			{
+				bottleFull = false;
+				switch(bottleChoice)
+				{
+					case 1:
+						waterBottle.setImageResource(R.drawable.holo1);
+	            		break;
+	            	case 2:
+	            		waterBottle.setImageResource(R.drawable.holo2);
+	            		break;
+	            	case 3:
+	            		waterBottle.setImageResource(R.drawable.holo3);
+	            		break;
+	            	case 4:
+	            		waterBottle.setImageResource(R.drawable.holo4);
+	            		break;
+	            	default:
+	            		break;
+				}
+			}
+			
+		}
 		
 		mapInit();
 		
@@ -134,34 +253,21 @@ GooglePlayServicesClient.OnConnectionFailedListener
 			public boolean onLongClick(View v) {
 				
 				if(!bottleFull)
-					increaseWater();
+					increaseWater(0);
 				
 				return true;
 			}
 		});
-		
-		decreaseWater();
 	}
 	
-	public void increaseWater()
+	public void increaseWater(long delay)
 	{	
 		bottleFull = true;
-		AnimatorSet blueUp = (AnimatorSet) AnimatorInflater.loadAnimator(CONTEXT, R.animator.blue_swing);
 
 		ObjectAnimator oa = ObjectAnimator.ofFloat(blueBG, "y", 5);
 		oa.setDuration(5000);
+		oa.setStartDelay(delay);
 		oa.start();
-//		blueUp.setTarget(blueBG);
-//		blueUp.start();
-	}
-	
-	public void decreaseWater()
-	{
-		LayoutParams param = (LayoutParams) blueBG.getLayoutParams();
-		param.topMargin = 240;
-		//param.setMargins(0, 200, 20, 0);
-		Log.d("BLUEBOX", "Height " + param.height + " Width " + param.width);
-		
 	}
 	
 	public void setAlarm()
@@ -234,6 +340,12 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	protected void onStop() {
 	    // Disconnecting the client invalidates it.
 	    mLocationClient.disconnect();
+	    
+	    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+	    SharedPreferences.Editor editor = settings.edit();
+	    editor.putLong(LAST_OPEN_TIME, System.currentTimeMillis());
+	    editor.commit();
+	    
 	    super.onStop();
 	}
 

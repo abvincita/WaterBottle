@@ -1171,7 +1171,7 @@ containing a value of this type.
         public static final int prev_arrow=0x7f02007d;
         public static final int selector=0x7f02007e;
         public static final int selector_jp=0x7f02007f;
-        public static final int transparent_color=0x7f02008c;
+        public static final int transparent_color=0x7f020098;
         public static final int water_mark=0x7f020080;
         public static final int water_mark_small=0x7f020081;
         public static final int waterbottle1=0x7f020082;
@@ -1183,7 +1183,19 @@ containing a value of this type.
         public static final int waterbottle_05=0x7f020088;
         public static final int waterbottle_07=0x7f020089;
         public static final int waterbottle_09=0x7f02008a;
-        public static final int yes_button=0x7f02008b;
+        public static final int waterbottle_23=0x7f02008b;
+        public static final int waterbottle_24=0x7f02008c;
+        public static final int waterbottle_25=0x7f02008d;
+        public static final int waterbottle_26=0x7f02008e;
+        public static final int waterbottle_27=0x7f02008f;
+        public static final int waterbottle_28=0x7f020090;
+        public static final int waterbottle_29=0x7f020091;
+        public static final int waterbottle_30=0x7f020092;
+        public static final int waterbottle_31=0x7f020093;
+        public static final int waterbottle_32=0x7f020094;
+        public static final int waterbottle_33=0x7f020095;
+        public static final int waterbottle_34=0x7f020096;
+        public static final int yes_button=0x7f020097;
     }
     public static final class id {
         public static final int action_bar=0x7f06001d;
