@@ -18,15 +18,10 @@ public class APILoader implements JSONRequest.NetworkListener
 {
 	private LoadingListener loadingListener= null;
 	private boolean isLoading;
-	private String result;
 	private GoogleMap mMap;
 	private State state;
 	private ArrayList<ParkItem> parkItems = new ArrayList<ParkItem>();
 	private ArrayList<Marker> markers = new ArrayList<Marker>();
-	
-	private enum State {
-		TOILET, FITNESS
-	}
 
 	public APILoader(GoogleMap map, ArrayList<Marker> markers) 
 	{
@@ -70,9 +65,8 @@ public class APILoader implements JSONRequest.NetworkListener
 	}
 
 	@Override
-	public void networkRequestCompleted(String result) {
-		this.result = result;
-
+	public void networkRequestCompleted(String result) 
+	{
 		Object obj = JSONValue.parse(result);
 		try 
 		{

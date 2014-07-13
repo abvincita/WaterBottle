@@ -43,10 +43,10 @@
 		</FrameLayout>
         		
        <RelativeLayout
-       android:id="@+id/bottom_box"
-       android:orientation="vertical"
-       android:layout_width="match_parent"
-	   android:layout_height="120dp" >
+           android:id="@+id/bottom_box"
+	       android:orientation="vertical"
+	       android:layout_width="match_parent"
+		   android:layout_height="120dp" >
 		    
  		    	<TextView
  		    	    android:id="@+id/color_box"

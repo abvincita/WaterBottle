@@ -1351,8 +1351,9 @@ containing a value of this type.
         public static final int support_simple_spinner_dropdown_item=0x7f03001b;
     }
     public static final class menu {
-        public static final int choose_bottle=0x7f0d0000;
-        public static final int home=0x7f0d0001;
+        public static final int bottom_box=0x7f0d0000;
+        public static final int choose_bottle=0x7f0d0001;
+        public static final int home=0x7f0d0002;
     }
     public static final class string {
         /**  Content description for the action bar "home" affordance. [CHAR LIMIT=NONE] 
@@ -1488,6 +1489,7 @@ containing a value of this type.
         /**  Optional button to Skip a PreferenceActivity [CHAR LIMIT=20] 
          */
         public static final int skip_button_label=0x7f0b000f;
+        public static final int title_activity_bottom_box_fragment=0x7f0b0030;
         public static final int title_activity_choose_bottle_fragment=0x7f0b002c;
         public static final int water_bottle=0x7f0b002b;
         public static final int water_mark=0x7f0b0029;

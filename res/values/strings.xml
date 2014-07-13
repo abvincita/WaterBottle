@@ -12,5 +12,6 @@
     <string name="next_arrow_desc">Next Arrow</string>
     <string name="prev_arrow_desc">Prev Arrow</string>
     <string name="choose_bottle">Pick your water bottle!</string>
+    <string name="title_activity_bottom_box_fragment">BottomBoxFragment</string>
 
 </resources>

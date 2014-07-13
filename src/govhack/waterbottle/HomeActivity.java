@@ -39,9 +39,12 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class HomeActivity extends FragmentActivity implements
 LocationListener,
@@ -60,6 +63,7 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	public static ImageView blueBG;
 	public static Context baseContext;
 	
+	private State state = State.WATER;
 	private static boolean bottleFull = false;
 	private AlarmManager am;
 	private ViewPager mPager;
@@ -73,7 +77,7 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	private ArrayList<ParkItem> fountainList = new ArrayList<ParkItem>();
 	private ArrayList<Marker> fountainMarkers, toiletMarkers, fitnessMarkers;
 	private APILoader apiLoader;
-	
+
 	// Handle to SharedPreferences for this app
 	SharedPreferences settings;
     // Handle to a SharedPreferences editor
@@ -264,6 +268,84 @@ GooglePlayServicesClient.OnConnectionFailedListener
 				return true;
 			}
 		});
+		
+		RelativeLayout bottomBox = (RelativeLayout) findViewById(R.id.bottom_box);
+		bottomBox.setOnTouchListener(new View.OnTouchListener() {
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) 
+			{
+				LatLng myLoc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()); 
+				
+				float x1 = 0, x2 = 0;
+				int MIN_DISTANCE_LEFT = 150;
+				
+				switch(event.getAction())
+			     {
+			       case MotionEvent.ACTION_DOWN:
+			           x1 = event.getX();                         
+			       break;       
+			       
+			       case MotionEvent.ACTION_UP:
+			           x2 = event.getX();
+			           float deltaX = x2 - x1;
+			           Log.d("DELTA X", "" + deltaX);
+			           
+			           if (deltaX > MIN_DISTANCE_LEFT)
+			           {
+						    if(state == State.WATER)
+						    {
+							    removeMarkers(fountainMarkers);
+							    
+							    if(toiletMarkers == null)
+							    {
+									toiletMarkers = new ArrayList<Marker>();
+									apiLoader = new APILoader(mMap, toiletMarkers);
+									apiLoader.requestToilets();
+							    }
+							    else
+							    	returnMarker(toiletMarkers);
+								
+								TextView itemText = (TextView) findViewById(R.id.nearest_tap_text); 
+								itemText.setText("To the nearest toilet");
+								
+								state = State.TOILET;
+								
+								//getClosestMarker(toiletMarkers, myLoc);
+						    }
+						    else if(state == State.TOILET)
+						    {
+							    removeMarkers(toiletMarkers);
+							    
+							    if(fitnessMarkers == null)
+							    {
+									fitnessMarkers = new ArrayList<Marker>();
+									apiLoader = new APILoader(mMap, fitnessMarkers);
+									apiLoader.requestFitness();
+							    }
+							    else
+							    	returnMarker(fitnessMarkers);
+								
+								TextView itemText = (TextView) findViewById(R.id.nearest_tap_text); 
+								itemText.setText("To the nearest fitness facility");
+								
+								state = State.FITNESS;
+						    }
+						    else
+						    {
+						    	removeMarkers(fitnessMarkers);
+						    	returnMarker(fountainMarkers);
+								TextView itemText = (TextView) findViewById(R.id.nearest_tap_text); 
+								itemText.setText("To the nearest public tap");
+								
+								state = State.WATER;
+						    }
+			           }   
+			       break;   
+			     }           
+			     return true;  
+			}
+		});
 	}
 	
 	public static void increaseWater(long delay)
@@ -449,10 +531,6 @@ GooglePlayServicesClient.OnConnectionFailedListener
 			
 			TextView distanceText = (TextView) findViewById(R.id.distance_text); 
 			distanceText.setText(closestDistance.intValue() + "m");
-			
-//			toiletMarkers = new ArrayList<Marker>();
-//			apiLoader = new APILoader(mMap, toiletMarkers);
-//			apiLoader.requestToilets();
         }
 	}
 
@@ -470,10 +548,20 @@ GooglePlayServicesClient.OnConnectionFailedListener
 		mCurrentLocation = location;
 		LatLng myLoc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()); 
 		
-		Marker closestMarker = fountainMarkers.get(0);
+		if(state == State.WATER)
+			getClosestMarker(fountainMarkers, myLoc);
+		else if(state == State.TOILET)
+			getClosestMarker(toiletMarkers, myLoc);
+		else
+			getClosestMarker(fitnessMarkers, myLoc);
+	}
+	
+	private void getClosestMarker(ArrayList<Marker> markerList, LatLng myLoc)
+	{
+		Marker closestMarker = markerList.get(0);
 		Double closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
 		
-		for(Marker marker : fountainMarkers)
+		for(Marker marker : markerList)
 		{
 			closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
 			Double newDistance = haversianDistance(myLoc, marker.getPosition());
@@ -492,8 +580,9 @@ GooglePlayServicesClient.OnConnectionFailedListener
 			
 			TextView distanceText = (TextView) findViewById(R.id.distance_text); 
 			distanceText.setText(closestDistance.intValue() + "m");
+			
+			currentNearestMarker = closestMarker;
 		}
-		
 	}
 
 	@Override
@@ -538,4 +627,21 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	private static Double toRad(Double value) {
         return value * Math.PI / 180;
     }
+	
+	private void removeMarkers(ArrayList<Marker> markerList)
+	{
+		for (Marker m : markerList)
+		{
+			m.setVisible(false);
+			//m.remove();
+		}
+	}
+	
+	private void returnMarker(ArrayList<Marker> markerList)
+	{
+		for (Marker m : markerList)
+		{
+			m.setVisible(true);
+		}
+	}
 }

@@ -10,7 +10,7 @@
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
     <!--
          The following two permissions are not required to use
-	     Google Maps Android API v2, but are recommended.
+	     Google Maps Android API v2, but are recommended.
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
@@ -42,8 +42,13 @@
             android:name="govhack.waterbottle.ChooseBottleFragment"
             android:label="@string/title_activity_choose_bottle_fragment" >
         </activity>
-        
-        <receiver android:name=".MyReceiver"/>
+
+        <receiver android:name="govhack.waterbottle.MyReceiver" />
+
+        <activity
+            android:name="govhack.waterbottle.BottomBoxFragment"
+            android:label="@string/title_activity_bottom_box_fragment" >
+        </activity>
     </application>
 
 </manifest>
