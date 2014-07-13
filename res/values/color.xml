@@ -13,6 +13,7 @@
 	<color name="grey_background">#eeeeee</color>
     <color name="transparent_black">#88000000</color>
     <color name="blue_background">#33b6e5</color>
+    <color name="light_grey">#dadada</color>
     <drawable name="transparent_color">#00000000</drawable>    
 	
 </resources>

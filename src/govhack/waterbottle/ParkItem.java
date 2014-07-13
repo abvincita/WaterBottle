@@ -2,12 +2,12 @@ package govhack.waterbottle;
 
 import com.google.android.gms.maps.model.LatLng;
 
-public class WaterFountain 
+public class ParkItem 
 {
 	private String id, type, desc, parkName;
 	private LatLng position;
 	
-	public WaterFountain()
+	public ParkItem()
 	{
 		id = "";
 		type = "";
@@ -16,7 +16,7 @@ public class WaterFountain
 		position = new LatLng(0.0, 0.0);
 	}
 	
-	public WaterFountain(String parkName, String id, String type, String desc, LatLng position)
+	public ParkItem(String parkName, String id, String type, String desc, LatLng position)
 	{
 		this.parkName = parkName;
 		this.id = id;

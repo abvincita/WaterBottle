@@ -916,7 +916,7 @@ containing a value of this type.
     }
     public static final class color {
         public static final int FireBrick=0x7f08000f;
-        public static final int abc_search_url_text_holo=0x7f08001a;
+        public static final int abc_search_url_text_holo=0x7f08001b;
         public static final int abc_search_url_text_normal=0x7f080000;
         public static final int abc_search_url_text_pressed=0x7f080002;
         public static final int abc_search_url_text_selected=0x7f080001;
@@ -935,12 +935,13 @@ containing a value of this type.
         public static final int common_signin_btn_light_text_disabled=0x7f080009;
         public static final int common_signin_btn_light_text_focused=0x7f08000a;
         public static final int common_signin_btn_light_text_pressed=0x7f080008;
-        public static final int common_signin_btn_text_dark=0x7f08001b;
-        public static final int common_signin_btn_text_light=0x7f08001c;
+        public static final int common_signin_btn_text_dark=0x7f08001c;
+        public static final int common_signin_btn_text_light=0x7f08001d;
         public static final int dark_grey=0x7f080016;
         public static final int drawer_background=0x7f080010;
         public static final int ferry_blue=0x7f080014;
         public static final int grey_background=0x7f080017;
+        public static final int light_grey=0x7f08001a;
         public static final int selected_blue=0x7f080012;
         public static final int separator_line=0x7f080011;
         public static final int train_orange=0x7f080015;
@@ -1178,23 +1179,23 @@ containing a value of this type.
         public static final int waterbottle2=0x7f020083;
         public static final int waterbottle3=0x7f020084;
         public static final int waterbottle4=0x7f020085;
-        public static final int waterbottle_01=0x7f020086;
-        public static final int waterbottle_03=0x7f020087;
-        public static final int waterbottle_05=0x7f020088;
-        public static final int waterbottle_07=0x7f020089;
-        public static final int waterbottle_09=0x7f02008a;
-        public static final int waterbottle_23=0x7f02008b;
-        public static final int waterbottle_24=0x7f02008c;
-        public static final int waterbottle_25=0x7f02008d;
-        public static final int waterbottle_26=0x7f02008e;
-        public static final int waterbottle_27=0x7f02008f;
-        public static final int waterbottle_28=0x7f020090;
-        public static final int waterbottle_29=0x7f020091;
-        public static final int waterbottle_30=0x7f020092;
-        public static final int waterbottle_31=0x7f020093;
-        public static final int waterbottle_32=0x7f020094;
-        public static final int waterbottle_33=0x7f020095;
-        public static final int waterbottle_34=0x7f020096;
+        public static final int waterbottle_03=0x7f020086;
+        public static final int waterbottle_05=0x7f020087;
+        public static final int waterbottle_07=0x7f020088;
+        public static final int waterbottle_09=0x7f020089;
+        public static final int waterbottle_23=0x7f02008a;
+        public static final int waterbottle_24=0x7f02008b;
+        public static final int waterbottle_25=0x7f02008c;
+        public static final int waterbottle_26=0x7f02008d;
+        public static final int waterbottle_27=0x7f02008e;
+        public static final int waterbottle_28=0x7f02008f;
+        public static final int waterbottle_29=0x7f020090;
+        public static final int waterbottle_30=0x7f020091;
+        public static final int waterbottle_31=0x7f020092;
+        public static final int waterbottle_32=0x7f020093;
+        public static final int waterbottle_33=0x7f020094;
+        public static final int waterbottle_34=0x7f020095;
+        public static final int waterbottle_icon=0x7f020096;
         public static final int yes_button=0x7f020097;
     }
     public static final class id {
@@ -1518,6 +1519,7 @@ containing a value of this type.
  All customizations that are NOT specific to a particular API-level can go here. 
          */
         public static final int AppTheme=0x7f0c0080;
+        public static final int NoActionBar=0x7f0c0081;
         /**  Mimic text appearance in select_dialog_item.xml 
          */
         public static final int TextAppearance_AppCompat_Base_CompactMenu_Dialog=0x7f0c0061;

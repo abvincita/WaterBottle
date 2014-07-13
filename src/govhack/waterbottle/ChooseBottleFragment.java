@@ -16,7 +16,6 @@ package govhack.waterbottle;
  */
 
 import android.content.SharedPreferences;
-import android.opengl.Visibility;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -26,10 +25,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 /**
  * A fragment representing a single step in a wizard. The fragment shows a dummy title indicating
@@ -62,8 +59,8 @@ public class ChooseBottleFragment extends Fragment implements OnClickListener {
         return fragment;
     }
 
-    public ChooseBottleFragment() {
-    }
+    public ChooseBottleFragment() 
+    { }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -95,8 +92,6 @@ public class ChooseBottleFragment extends Fragment implements OnClickListener {
         ImageView nextArrow = (ImageView) rootView.findViewById(R.id.next_arrow);
         nextArrow.setOnClickListener(this);
 
-        // Set the title view to show the page number.
-        
         ImageView tutorialImage = (ImageView) rootView.findViewById(R.id.tutorial_image);
         
         switch(mPageNumber+1)
@@ -175,6 +170,8 @@ public class ChooseBottleFragment extends Fragment implements OnClickListener {
 
         		ViewGroup vg = (ViewGroup)(pagerView.getParent());
         		vg.removeView(pagerView);
+        		
+        		HomeActivity.increaseWater(1000);
         		break;
         		
         	case R.id.next_arrow:

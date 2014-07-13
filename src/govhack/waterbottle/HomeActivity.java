@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -20,10 +21,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -43,8 +41,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 public class HomeActivity extends FragmentActivity implements
@@ -53,6 +49,8 @@ GooglePlayServicesClient.ConnectionCallbacks,
 GooglePlayServicesClient.OnConnectionFailedListener 
 {
 	private static final LatLng DEFAULT_LOCATION = new LatLng(-27.498037,153.017823);
+	private static final int UPDATE_INTERVAL = 10000;
+	private static final int FASTEST_INTERVAL = 5000;
 	public static final String CHOOSE_BOTTLE_SETTING = "CHOOSE_BOTTLE";
 	public static final String LAST_OPEN_TIME = "LAST_OPEN_TIME";
 	public static final String BOTTLE_CHOICE = "BOTTLE_CHOICE";
@@ -60,18 +58,21 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	public static TextView chooseBottleTitle;
 	public static ImageView waterBottle;
 	public static ImageView blueBG;
-	private final Context CONTEXT = this;
+	public static Context baseContext;
 	
-	private boolean bottleFull = false;
+	private static boolean bottleFull = false;
 	private AlarmManager am;
 	private ViewPager mPager;
 	private PagerAdapter mPagerAdapter;
 	private GoogleMap mMap;
 	private SupportMapFragment mapFrag;
 	private LocationClient mLocationClient;
+	private LocationRequest mLocationRequest;
 	private Location mCurrentLocation;
-	private ArrayList<WaterFountain> fountainList = new ArrayList<WaterFountain>();
-	private ArrayList<Marker> fountainMarkers = new ArrayList<Marker>();
+	private Marker currentNearestMarker;
+	private ArrayList<ParkItem> fountainList = new ArrayList<ParkItem>();
+	private ArrayList<Marker> fountainMarkers, toiletMarkers, fitnessMarkers;
+	private APILoader apiLoader;
 	
 	// Handle to SharedPreferences for this app
 	SharedPreferences settings;
@@ -115,6 +116,10 @@ GooglePlayServicesClient.OnConnectionFailedListener
         	setAlarm();
         
 		mLocationClient = new LocationClient(this, this, this);
+		mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(UPDATE_INTERVAL);
+        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
 		
 		settings = PreferenceManager.getDefaultSharedPreferences(this);
 		boolean chooseBottle = settings.getBoolean(CHOOSE_BOTTLE_SETTING, true);
@@ -122,12 +127,13 @@ GooglePlayServicesClient.OnConnectionFailedListener
 		
 		chooseBottleTitle = (TextView) findViewById(R.id.tutorial_title);
 		waterBottle = (ImageView) findViewById(R.id.water_bottle);
-		blueBG = (ImageView)findViewById(R.id.blue_bg);
+		blueBG = (ImageView) findViewById(R.id.blue_bg);
+		
+		baseContext = getBaseContext();
 		
 		if (chooseBottle)
 		{
 			showChooseBottleDialog();
-			increaseWater(4000);
 		}
 		else
 		{
@@ -260,14 +266,19 @@ GooglePlayServicesClient.OnConnectionFailedListener
 		});
 	}
 	
-	public void increaseWater(long delay)
+	public static void increaseWater(long delay)
 	{	
 		bottleFull = true;
 
-		ObjectAnimator oa = ObjectAnimator.ofFloat(blueBG, "y", 5);
+		ObjectAnimator oa = ObjectAnimator.ofFloat(blueBG, "y", 7);
 		oa.setDuration(5000);
 		oa.setStartDelay(delay);
 		oa.start();
+		
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(baseContext);
+	    SharedPreferences.Editor editor = settings.edit();
+	    editor.putLong(LAST_OPEN_TIME, System.currentTimeMillis());
+	    editor.commit();
 	}
 	
 	public void setAlarm()
@@ -340,12 +351,6 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	protected void onStop() {
 	    // Disconnecting the client invalidates it.
 	    mLocationClient.disconnect();
-	    
-	    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-	    SharedPreferences.Editor editor = settings.edit();
-	    editor.putLong(LAST_OPEN_TIME, System.currentTimeMillis());
-	    editor.commit();
-	    
 	    super.onStop();
 	}
 
@@ -387,39 +392,83 @@ GooglePlayServicesClient.OnConnectionFailedListener
         LatLng myLoc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());   
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLoc, (float) 17.0), 2000, null);
         
-        AssetManager am = getAssets();
-		try
-		{
-			InputStream is = am.open("dataset_drinking_fountain_taps3.csv");
+        if(fountainMarkers == null)
+        {
+        	fountainMarkers = new ArrayList<Marker>();
+	        AssetManager am = getAssets();
+			try
+			{
+				InputStream is = am.open("dataset_drinking_fountain_taps3.csv");
+				
+				BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+				
+				String line = reader.readLine();
+		        while((line = reader.readLine()) != null)
+		        {
+		             String[] attributes = line.split(",");
+		             double lat = Double.parseDouble(attributes[12]);
+		             double lng = Double.parseDouble(attributes[11]);
+		             LatLng pos = new LatLng(lat, lng);
+		             ParkItem fountain = new ParkItem(attributes[3], attributes[6], attributes[7], attributes[8], pos);
+		             fountainList.add(fountain);
+		             
+		             Marker m = mMap.addMarker(new MarkerOptions()
+						.position(pos)
+						.title(fountain.getDesc())
+						.snippet(fountain.getParkName())
+						.icon(BitmapDescriptorFactory.fromResource(R.drawable.water_mark_small)));
+		             
+		             fountainMarkers.add(m);
+		        }
+				
+			    reader.close();
+			    is.close();
+			}
+			catch(IOException e)
+			{
+				e.printStackTrace();
+			}
 			
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+			Marker closestMarker = fountainMarkers.get(0);
+			Double closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
 			
-			String line = reader.readLine();
-	        while((line = reader.readLine()) != null)
-	        {
-	             String[] attributes = line.split(",");
-	             double lat = Double.parseDouble(attributes[12]);
-	             double lng = Double.parseDouble(attributes[11]);
-	             LatLng pos = new LatLng(lat, lng);
-	             WaterFountain fountain = new WaterFountain(attributes[3], attributes[6], attributes[7], attributes[8], pos);
-	             fountainList.add(fountain);
-	             
-	             Marker m = mMap.addMarker(new MarkerOptions()
-					.position(pos)
-					.title(fountain.getDesc())
-					.snippet(fountain.getParkName())
-					.icon(BitmapDescriptorFactory.fromResource(R.drawable.water_mark_small)));
-	             
-	             fountainMarkers.add(m);
-	        }
+			for(Marker marker : fountainMarkers)
+			{
+				closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
+				Double newDistance = haversianDistance(myLoc, marker.getPosition());
+				
+				if(newDistance < closestDistance)
+				{
+					closestMarker = marker;
+					closestDistance = newDistance;
+				}
+			}
 			
-		    reader.close();
-		    is.close();
-		}
-		catch(IOException e)
-		{
-			e.printStackTrace();
-		}
+			currentNearestMarker = closestMarker;
+			closestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.water_mark)));
+			
+			TextView distanceText = (TextView) findViewById(R.id.distance_text); 
+			distanceText.setText(closestDistance.intValue() + "m");
+			
+//			toiletMarkers = new ArrayList<Marker>();
+//			apiLoader = new APILoader(mMap, toiletMarkers);
+//			apiLoader.requestToilets();
+        }
+	}
+
+	@Override
+	public void onDisconnected() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		// TODO Auto-generated method stub
+		Log.d("ONLOCATIONCHANGED", "inside");
+		
+		mCurrentLocation = location;
+		LatLng myLoc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()); 
 		
 		Marker closestMarker = fountainMarkers.get(0);
 		Double closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
@@ -436,22 +485,14 @@ GooglePlayServicesClient.OnConnectionFailedListener
 			}
 		}
 		
-		closestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.water_mark)));
-		
-		TextView distanceText = (TextView) findViewById(R.id.distance_text); 
-		distanceText.setText(closestDistance.intValue() + "m");
-		
-	}
-
-	@Override
-	public void onDisconnected() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onLocationChanged(Location location) {
-		// TODO Auto-generated method stub
+		if(!currentNearestMarker.getPosition().equals(closestMarker.getPosition()))
+		{
+			closestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.water_mark)));
+			currentNearestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.water_mark_small)));
+			
+			TextView distanceText = (TextView) findViewById(R.id.distance_text); 
+			distanceText.setText(closestDistance.intValue() + "m");
+		}
 		
 	}
 
@@ -497,5 +538,4 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	private static Double toRad(Double value) {
         return value * Math.PI / 180;
     }
-
 }

@@ -51,8 +51,9 @@
  		    	<TextView
  		    	    android:id="@+id/color_box"
  		    	    android:layout_width="match_parent"
- 		    	    android:layout_height="5dp"
- 		    	    android:background="@color/ferry_blue" />
+ 		    	    android:layout_height="3dp"
+ 		    	    android:layout_marginBottom="5dp"
+ 		    	    android:background="@color/light_grey" />
  		    	
  		    	<TextView
 			        android:id="@+id/distance_text"
