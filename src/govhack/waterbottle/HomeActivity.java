@@ -44,7 +44,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class HomeActivity extends FragmentActivity implements
 LocationListener,
@@ -59,6 +58,7 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	public static final String BOTTLE_CHOICE = "BOTTLE_CHOICE";
 	public static final int NUM_PAGES = 4;
 	public static TextView chooseBottleTitle;
+	public static TextView distanceText;
 	public static ImageView waterBottle;
 	public static ImageView blueBG;
 	public static Context baseContext;
@@ -132,6 +132,7 @@ GooglePlayServicesClient.OnConnectionFailedListener
 		chooseBottleTitle = (TextView) findViewById(R.id.tutorial_title);
 		waterBottle = (ImageView) findViewById(R.id.water_bottle);
 		blueBG = (ImageView) findViewById(R.id.blue_bg);
+		distanceText = (TextView) findViewById(R.id.distance_text); 
 		
 		baseContext = getBaseContext();
 		
@@ -263,25 +264,34 @@ GooglePlayServicesClient.OnConnectionFailedListener
 			public boolean onLongClick(View v) {
 				
 				if(!bottleFull)
+				{
+					unsetAlarm();
 					increaseWater(0);
+					setAlarm();
+				}
 				
 				return true;
 			}
 		});
 		
 		RelativeLayout bottomBox = (RelativeLayout) findViewById(R.id.bottom_box);
+				
 		bottomBox.setOnTouchListener(new View.OnTouchListener() {
+			
+			float x1 = 0, x2 = 0;
+			int MIN_DISTANCE_LEFT = 200;
+			int MIN_DISTANCE_RIGHT = -200;
+			
+			TextView itemText = (TextView) findViewById(R.id.nearest_tap_text); 
+			ImageView waterMark = (ImageView) findViewById(R.id.water_mark);
 			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) 
 			{
 				LatLng myLoc = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()); 
 				
-				float x1 = 0, x2 = 0;
-				int MIN_DISTANCE_LEFT = 150;
-				
 				switch(event.getAction())
-			     {
+			    {
 			       case MotionEvent.ACTION_DOWN:
 			           x1 = event.getX();                         
 			       break;       
@@ -289,59 +299,46 @@ GooglePlayServicesClient.OnConnectionFailedListener
 			       case MotionEvent.ACTION_UP:
 			           x2 = event.getX();
 			           float deltaX = x2 - x1;
-			           Log.d("DELTA X", "" + deltaX);
+			           Log.d("DELTAX", "" + deltaX);
 			           
-			           if (deltaX > MIN_DISTANCE_LEFT)
+			           if (deltaX < MIN_DISTANCE_RIGHT || deltaX > MIN_DISTANCE_LEFT)
 			           {
 						    if(state == State.WATER)
 						    {
+						    	state = State.TOILET;
 							    removeMarkers(fountainMarkers);
-							    
-							    if(toiletMarkers == null)
+							    distanceText.setText("          ");
+  
+							    if(toiletMarkers == null || toiletMarkers.size() == 0)
 							    {
 									toiletMarkers = new ArrayList<Marker>();
-									apiLoader = new APILoader(mMap, toiletMarkers);
+									apiLoader = new APILoader(mMap, toiletMarkers, myLoc, distanceText);
 									apiLoader.requestToilets();
 							    }
 							    else
-							    	returnMarker(toiletMarkers);
-								
-								TextView itemText = (TextView) findViewById(R.id.nearest_tap_text); 
-								itemText.setText("To the nearest toilet");
-								
-								state = State.TOILET;
-								
-								//getClosestMarker(toiletMarkers, myLoc);
-						    }
-						    else if(state == State.TOILET)
-						    {
-							    removeMarkers(toiletMarkers);
-							    
-							    if(fitnessMarkers == null)
 							    {
-									fitnessMarkers = new ArrayList<Marker>();
-									apiLoader = new APILoader(mMap, fitnessMarkers);
-									apiLoader.requestFitness();
+							    	returnMarkers(toiletMarkers);
+							    	getClosestMarker(toiletMarkers, myLoc);
 							    }
-							    else
-							    	returnMarker(fitnessMarkers);
 								
-								TextView itemText = (TextView) findViewById(R.id.nearest_tap_text); 
-								itemText.setText("To the nearest fitness facility");
-								
-								state = State.FITNESS;
+								itemText.setText("To the nearest toilet");
+								waterMark.setImageResource(R.drawable.location_geo_border);		
 						    }
 						    else
 						    {
-						    	removeMarkers(fitnessMarkers);
-						    	returnMarker(fountainMarkers);
-								TextView itemText = (TextView) findViewById(R.id.nearest_tap_text); 
+						    	state = State.WATER;
+						    	apiLoader.cancelLoadingAPI();
+
+						    	removeMarkers(toiletMarkers);
+						    	returnMarkers(fountainMarkers);
+				
 								itemText.setText("To the nearest public tap");
-								
-								state = State.WATER;
+								waterMark.setImageResource(R.drawable.water_mark);
+											
+								getClosestMarker(fountainMarkers, myLoc);
 						    }
 			           }   
-			       break;   
+			           break;   
 			     }           
 			     return true;  
 			}
@@ -366,21 +363,18 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	public void setAlarm()
 	{
 		Intent intent = new Intent(this, MyReceiver.class);
-		  PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
-		    intent, PendingIntent.FLAG_CANCEL_CURRENT);
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 		  
-		  long firstTime = System.currentTimeMillis();
-	        firstTime += (30 * 60 * 1000);
+		long firstTime = System.currentTimeMillis();
+	    firstTime += (30 * 60 * 1000);
 		  
-		  am.setRepeating(AlarmManager.RTC_WAKEUP, firstTime,
-		    (30 * 60 * 1000), pendingIntent);
+		am.setRepeating(AlarmManager.RTC_WAKEUP, firstTime, (30 * 60 * 1000), pendingIntent);
 	}
 	
 	public void unsetAlarm() 
 	{
 		Intent intent = new Intent(this, MyReceiver.class);
-		  PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
-		    intent, PendingIntent.FLAG_CANCEL_CURRENT);
+		PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
 	    am.cancel(pendingIntent);
 	} 
@@ -558,30 +552,40 @@ GooglePlayServicesClient.OnConnectionFailedListener
 	
 	private void getClosestMarker(ArrayList<Marker> markerList, LatLng myLoc)
 	{
-		Marker closestMarker = markerList.get(0);
-		Double closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
-		
-		for(Marker marker : markerList)
+		if(markerList != null && markerList.size() > 0)
 		{
-			closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
-			Double newDistance = haversianDistance(myLoc, marker.getPosition());
+			Marker closestMarker = markerList.get(0);
+			Double closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
 			
-			if(newDistance < closestDistance)
+			for(Marker marker : markerList)
 			{
-				closestMarker = marker;
-				closestDistance = newDistance;
+				closestDistance = haversianDistance(myLoc, closestMarker.getPosition());
+				Double newDistance = haversianDistance(myLoc, marker.getPosition());
+				
+				if(newDistance < closestDistance)
+				{
+					closestMarker = marker;
+					closestDistance = newDistance;
+				}
 			}
-		}
-		
-		if(!currentNearestMarker.getPosition().equals(closestMarker.getPosition()))
-		{
-			closestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.water_mark)));
-			currentNearestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.water_mark_small)));
 			
-			TextView distanceText = (TextView) findViewById(R.id.distance_text); 
 			distanceText.setText(closestDistance.intValue() + "m");
 			
-			currentNearestMarker = closestMarker;
+			if(!currentNearestMarker.getPosition().equals(closestMarker.getPosition()))
+			{
+				if(state == State.WATER)
+				{
+					closestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.water_mark)));
+					currentNearestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.water_mark_small)));
+				}
+				else
+				{
+					closestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.location_geo_border)));
+					currentNearestMarker.setIcon((BitmapDescriptorFactory.fromResource(R.drawable.location_geo_border)));
+				}
+				
+				currentNearestMarker = closestMarker;
+			}
 		}
 	}
 
@@ -603,7 +607,7 @@ GooglePlayServicesClient.OnConnectionFailedListener
 		
 	}
 	
-	private Double haversianDistance(LatLng center, LatLng point)
+	public static Double haversianDistance(LatLng center, LatLng point)
 	{
 		//earth radius in meter
 		final int R = 6371000;
@@ -633,11 +637,10 @@ GooglePlayServicesClient.OnConnectionFailedListener
 		for (Marker m : markerList)
 		{
 			m.setVisible(false);
-			//m.remove();
 		}
 	}
 	
-	private void returnMarker(ArrayList<Marker> markerList)
+	private void returnMarkers(ArrayList<Marker> markerList)
 	{
 		for (Marker m : markerList)
 		{

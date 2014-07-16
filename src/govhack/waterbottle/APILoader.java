@@ -7,6 +7,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import android.util.Log;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -22,11 +23,16 @@ public class APILoader implements JSONRequest.NetworkListener
 	private State state;
 	private ArrayList<ParkItem> parkItems = new ArrayList<ParkItem>();
 	private ArrayList<Marker> markers = new ArrayList<Marker>();
+	private LatLng myLoc;
+	private TextView distanceText;
+	private JSONRequest request;
 
-	public APILoader(GoogleMap map, ArrayList<Marker> markers) 
+	public APILoader(GoogleMap map, ArrayList<Marker> markers, LatLng myLoc, TextView distanceText) 
 	{
 		mMap = map;
 		this.markers = markers;
+		this.myLoc = myLoc;
+		this.distanceText = distanceText;
 		
 		isLoading = false;
 		if (loadingListener != null) {
@@ -39,7 +45,7 @@ public class APILoader implements JSONRequest.NetworkListener
 		state = State.TOILET;
 		String urlString = "http://118.138.242.136/parks/index.php?useAPI=true&ITEM_TYPE=TOILET&limit=5000";
 		Log.d("urlString: ", urlString);
-		JSONRequest request = new JSONRequest();
+		request = new JSONRequest();
 		request.setListener(this);
 		request.execute(urlString);
 
@@ -54,7 +60,7 @@ public class APILoader implements JSONRequest.NetworkListener
 		state = State.FITNESS;
 		String urlString = "http://118.138.242.136/parks/index.php?useAPI=true&ITEM_TYPE=FITNESS&limit=5000";
 		Log.d("urlString: ", urlString);
-		JSONRequest request = new JSONRequest();
+		request = new JSONRequest();
 		request.setListener(this);
 		request.execute(urlString);
 
@@ -62,6 +68,11 @@ public class APILoader implements JSONRequest.NetworkListener
 		if (loadingListener != null) {
 			loadingListener.onStateChange(isLoading);
 		}
+	}
+	
+	public void cancelLoadingAPI()
+	{
+		request.cancel(true);
 	}
 
 	@Override
@@ -75,7 +86,6 @@ public class APILoader implements JSONRequest.NetworkListener
 			for (int i = 0; i < array.size(); i++) 
 			{
 				JSONObject obj2 = (JSONObject)array.get(i);
-				Log.d("RESULT=", obj2.toJSONString());
 				
 				String parkName = (String) obj2.get("PARK_NAME");
 				String id = (String) obj2.get("ITEM_ID");
@@ -110,13 +120,13 @@ public class APILoader implements JSONRequest.NetworkListener
 					markers.add(m);
 				}
 			} 
+			
+			getClosestMarker(markers);
 		}
 		catch (Exception e)
 		{
 			//No data were found or there was some network error
 		}
-		
-		
 	}
 
 	/**
@@ -128,5 +138,25 @@ public class APILoader implements JSONRequest.NetworkListener
 
 	public void registerListener (LoadingListener listener) {
 		loadingListener = listener;
+	}
+	
+	private void getClosestMarker(ArrayList<Marker> markerList)
+	{
+		Marker closestMarker = markerList.get(0);
+		Double closestDistance = HomeActivity.haversianDistance(myLoc, closestMarker.getPosition());
+		
+		for(Marker marker : markerList)
+		{
+			closestDistance = HomeActivity.haversianDistance(myLoc, closestMarker.getPosition());
+			Double newDistance = HomeActivity.haversianDistance(myLoc, marker.getPosition());
+			
+			if(newDistance < closestDistance)
+			{
+				closestMarker = marker;
+				closestDistance = newDistance;
+			}
+		}
+		
+		distanceText.setText(closestDistance.intValue() + "m");
 	}
 }

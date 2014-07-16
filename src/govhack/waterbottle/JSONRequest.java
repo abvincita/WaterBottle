@@ -34,18 +34,21 @@ public class JSONRequest extends AsyncTask<String, Void, String>{
 		    Log.d("JSONRequest", "received URL: " + urlStr);
 		    HttpClient client = new DefaultHttpClient();
 		    HttpGet get = new HttpGet(urlStr);
-		    try {
+		    
+		    try 
+		    {
 		    	Log.d("JSONRequest", "making request");
 		        HttpResponse response = client.execute(get);
 		        
 		        StatusLine statusLine = response.getStatusLine();
 		        int statusCode = statusLine.getStatusCode();
 
-		        if (statusCode == 200) {
+		        if (statusCode == 200) 
+		        {
 		        	Log.d("JSONRequest", "status200");
 		        	BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 		        	String line ="";
-		        	while ((line = rd.readLine()) != null) {
+		        	while ((line = rd.readLine()) != null && !isCancelled()) {
 		        		str += line;
 		        	}
 		        }
